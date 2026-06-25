@@ -2,8 +2,6 @@
 
 DeutschMind is a full-stack learning application that turns German vocabulary into a visual knowledge graph. It combines spaced repetition, personal learning preferences, text and image analysis, and asynchronous AI-assisted vocabulary expansion.
 
-> Portfolio project for an Ausbildung application in software development.
-
 ## Highlights
 
 - Interactive vocabulary graph with topic-based learning paths
