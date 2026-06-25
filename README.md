@@ -15,6 +15,21 @@ DeutschMind is a full-stack learning application that turns German vocabulary in
 - PostgreSQL, Redis/BullMQ, and S3-compatible object storage
 - Legacy JSON mode for a quick local demo without infrastructure
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="./docs/screenshots/login.jpg" width="260" alt="German login screen"><br><sub>Authentication and language switch</sub></td>
+    <td align="center"><img src="./docs/screenshots/practice.jpg" width="260" alt="Spaced repetition practice"><br><sub>Spaced-repetition practice</sub></td>
+    <td align="center"><img src="./docs/screenshots/word-card.jpg" width="260" alt="Vocabulary detail card"><br><sub>Vocabulary details and AI expansion</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="./docs/screenshots/import.jpg" width="260" alt="AI material import"><br><sub>Asynchronous material analysis</sub></td>
+    <td align="center"><img src="./docs/screenshots/progress.jpg" width="260" alt="Learning progress and preferences"><br><sub>Progress and learning preferences</sub></td>
+    <td align="center"><img src="./docs/screenshots/knowledge-map.jpg" width="260" alt="Interactive vocabulary knowledge map"><br><sub>Interactive vocabulary knowledge map</sub></td>
+  </tr>
+</table>
+
 ## Tech stack
 
 | Area | Technologies |
