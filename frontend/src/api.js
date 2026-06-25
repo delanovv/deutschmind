@@ -1,5 +1,8 @@
 const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 const TOKEN_KEY = "deutschmind:accessToken";
+const LANGUAGE_KEY = "deutschmind:language";
+const languageHeader = () => localStorage.getItem(LANGUAGE_KEY) || "de";
+const message = (de, ru) => languageHeader() === "ru" ? ru : de;
 
 async function request(path, options = {}) {
   try {
@@ -7,6 +10,7 @@ async function request(path, options = {}) {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        "Accept-Language": languageHeader(),
         ...(localStorage.getItem(TOKEN_KEY)
           ? { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` }
           : {}),
@@ -21,19 +25,25 @@ async function request(path, options = {}) {
         localStorage.removeItem(TOKEN_KEY);
         window.dispatchEvent(new CustomEvent("auth:expired"));
       }
-      throw new Error(data.error || "Ошибка авторизации");
+      throw new Error(data.error || message("Anmeldung fehlgeschlagen", "Ошибка авторизации"));
     }
-    if (!response.ok) throw new Error(data.error || "Ошибка запроса");
+    if (!response.ok) throw new Error(data.error || message("Anfrage fehlgeschlagen", "Ошибка запроса"));
     return data;
   } catch (error) {
     if (error?.name === "AbortError") {
       throw new Error(
-        "Анализ был отменён или занял слишком много времени. Попробуй ещё раз.",
+        message(
+          "Die Analyse wurde abgebrochen oder dauerte zu lange. Bitte erneut versuchen.",
+          "Анализ был отменён или занял слишком много времени. Попробуй ещё раз.",
+        ),
       );
     }
     if (error instanceof TypeError) {
       throw new Error(
-        "Backend недоступен. Проверь порт 4000 и перезапусти frontend после настройки proxy.",
+        message(
+          "Das Backend ist nicht erreichbar. Port 4000 und die Proxy-Konfiguration prüfen.",
+          "Backend недоступен. Проверь порт 4000 и перезапусти frontend после настройки proxy.",
+        ),
       );
     }
     throw error;
@@ -45,6 +55,7 @@ async function requestForm(path, formData, options = {}) {
     const response = await fetch(`${API_URL}${path}`, {
       method: options.method || "POST",
       headers: {
+        "Accept-Language": languageHeader(),
         ...(localStorage.getItem(TOKEN_KEY)
           ? { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` }
           : {}),
@@ -56,12 +67,12 @@ async function requestForm(path, formData, options = {}) {
     if (response.status === 401) {
       localStorage.removeItem(TOKEN_KEY);
       window.dispatchEvent(new CustomEvent("auth:expired"));
-      throw new Error(data.error || "Ошибка авторизации");
+      throw new Error(data.error || message("Anmeldung fehlgeschlagen", "Ошибка авторизации"));
     }
-    if (!response.ok) throw new Error(data.error || "Ошибка загрузки");
+    if (!response.ok) throw new Error(data.error || message("Upload fehlgeschlagen", "Ошибка загрузки"));
     return data;
   } catch (error) {
-    if (error instanceof TypeError) throw new Error("Backend недоступен");
+    if (error instanceof TypeError) throw new Error(message("Backend nicht erreichbar", "Backend недоступен"));
     throw error;
   }
 }

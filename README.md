@@ -11,6 +11,7 @@ DeutschMind is a full-stack learning application that turns German vocabulary in
 - Isolated data for each user
 - Text and image analysis with background AI jobs
 - Progressive Web App frontend
+- German/Russian interface switch with localized backend errors
 - PostgreSQL, Redis/BullMQ, and S3-compatible object storage
 - Legacy JSON mode for a quick local demo without infrastructure
 

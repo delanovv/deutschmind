@@ -1,6 +1,7 @@
 import React from "react";
+import { useLanguage } from "../i18n.jsx";
 
-export default class AppErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { error: null };
@@ -19,11 +20,22 @@ export default class AppErrorBoundary extends React.Component {
     return (
       <main className="crash-screen">
         <div className="crash-icon">!</div>
-        <h1>Экран споткнулся</h1>
-        <p>Твои сохранённые слова не потеряны. Можно безопасно восстановить интерфейс.</p>
-        <button onClick={() => this.setState({ error: null })}>Вернуться в приложение</button>
-        <button className="crash-reload" onClick={() => window.location.reload()}>Перезагрузить страницу</button>
+        <h1>{this.props.copy.crashTitle}</h1>
+        <p>{this.props.copy.crashText}</p>
+        <button onClick={() => this.setState({ error: null })}>{this.props.copy.returnApp}</button>
+        <button className="crash-reload" onClick={() => window.location.reload()}>{this.props.copy.reload}</button>
       </main>
     );
   }
+}
+
+export default function AppErrorBoundary({ children }) {
+  const { t } = useLanguage();
+  const copy = {
+    crashTitle: t("crashTitle"),
+    crashText: t("crashText"),
+    returnApp: t("returnApp"),
+    reload: t("reload"),
+  };
+  return <ErrorBoundary copy={copy}>{children}</ErrorBoundary>;
 }

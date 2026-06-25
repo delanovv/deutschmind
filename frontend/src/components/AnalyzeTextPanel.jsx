@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { analyzeImage, analyzeText } from "../api.js";
 import StatCard from "./StatCard.jsx";
+import { useLanguage } from "../i18n.jsx";
 
 const progressStages = {
   image: [
@@ -23,6 +24,13 @@ function stageLabel(type, progress) {
 }
 
 export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
+  const { language, t } = useLanguage();
+  const localizedProgressStages = language === "de" ? {
+    image: [[0, "Foto wird vorbereitet"], [18, "Seitenstruktur wird erkannt"], [42, "Sätze und Wortformen werden analysiert"], [68, "Wortschatz wird mit deiner Karte verglichen"], [84, "Erklärungen und Beispiele werden vorbereitet"]],
+    text: [[0, "Text wird gelesen"], [22, "Grundformen und Wendungen werden erkannt"], [50, "Wortschatz wird mit deiner Karte verglichen"], [76, "Erklärungen und Beispiele werden vorbereitet"]],
+  } : progressStages;
+  const localizedStageLabel = (type, progress) =>
+    [...localizedProgressStages[type]].reverse().find(([threshold]) => progress >= threshold)?.[1];
   const [mode, setMode] = useState("image");
   const [text, setText] = useState("");
   const [result, setResult] = useState(null);
@@ -48,10 +56,10 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
 
   const prepareImage = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Не удалось прочитать фотографию"));
+    reader.onerror = () => reject(new Error(language === "de" ? "Das Foto konnte nicht gelesen werden" : "Не удалось прочитать фотографию"));
     reader.onload = () => {
       const image = new Image();
-      image.onerror = () => reject(new Error("Не удалось открыть фотографию"));
+      image.onerror = () => reject(new Error(language === "de" ? "Das Foto konnte nicht geöffnet werden" : "Не удалось открыть фотографию"));
       image.onload = () => {
         const maxSide = 1800;
         const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
@@ -91,20 +99,20 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
 
   const startProgress = (type) => {
     if (progressTimer.current) clearInterval(progressTimer.current);
-    setJob({ active: true, progress: 4, type, label: stageLabel(type, 4) });
+    setJob({ active: true, progress: 4, type, label: localizedStageLabel(type, 4) });
     progressTimer.current = setInterval(() => {
       setJob((current) => {
         if (!current.active || current.progress >= 91) return current;
         const increment = current.progress < 45 ? 4 : current.progress < 75 ? 2 : 1;
         const progress = Math.min(91, current.progress + increment);
-        return { ...current, progress, label: stageLabel(type, progress) };
+        return { ...current, progress, label: localizedStageLabel(type, progress) };
       });
     }, 650);
   };
 
   const finishProgress = async () => {
     if (progressTimer.current) clearInterval(progressTimer.current);
-    setJob((current) => ({ ...current, progress: 100, label: "Анализ готов" }));
+    setJob((current) => ({ ...current, progress: 100, label: t("done") }));
     await new Promise((resolve) => setTimeout(resolve, 350));
     setJob((current) => ({ ...current, active: false }));
   };
@@ -170,7 +178,7 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
         ...current,
         vocabulary: current.vocabulary?.map((item) => item.id === word.id ? { ...item, alreadyInMap: true } : item)
       } : current);
-      setNotice(`«${word.display || word.label}» добавлено в карту`);
+      setNotice(language === "de" ? `„${word.display || word.label}“ wurde zur Karte hinzugefügt` : `«${word.display || word.label}» добавлено в карту`);
       setTimeout(() => setNotice(""), 2500);
     } catch (requestError) {
       setError(requestError.message);
@@ -212,7 +220,7 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
           addedLabels.has((item.display || item.label).toLowerCase()) ? { ...item, alreadyInMap: true } : item
         )
       } : current);
-      setNotice(`Добавлено слов: ${data.added.length}`);
+      setNotice(language === "de" ? `Hinzugefügte Wörter: ${data.added.length}` : `Добавлено слов: ${data.added.length}`);
       setTimeout(() => setNotice(""), 2500);
     } catch (requestError) {
       setError(requestError.message);
@@ -226,17 +234,17 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
   return (
     <section className="screen-section analyze-screen">
       <div className="plain-page-header">
-        <span>НОВЫЙ МАТЕРИАЛ</span>
-        <h1>Импорт</h1>
-        <p>Сфотографируй страницу или вставь текст. AI поймёт материал и выберет полезные слова, фразы и глаголы.</p>
+        <span>{t("newMaterial")}</span>
+        <h1>{t("importTitle")}</h1>
+        <p>{t("importLegacyIntro")}</p>
       </div>
 
       <div className="import-mode-tabs">
         <button className={mode === "image" ? "active" : ""} onClick={() => setMode("image")} disabled={job.active}>
-          <b>▧</b><span>Фото</span>
+          <b>▧</b><span>{t("photo")}</span>
         </button>
         <button className={mode === "text" ? "active" : ""} onClick={() => setMode("text")} disabled={job.active}>
-          <b>≡</b><span>Текст</span>
+          <b>≡</b><span>{t("text")}</span>
         </button>
       </div>
 
@@ -244,34 +252,34 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
         <div className="image-import-card">
           {preview ? (
             <div className="image-preview-large">
-              <img src={preview} alt="Выбранный материал" />
+              <img src={preview} alt={t("selectedMaterial")} />
               <label className="replace-image">
                 <input type="file" accept="image/*" capture="environment" onChange={chooseFile} />
-                Сменить фото
+                {t("replacePhoto")}
               </label>
             </div>
           ) : (
             <label className="camera-picker">
               <input type="file" accept="image/*" capture="environment" onChange={chooseFile} />
               <span className="camera-icon">▧</span>
-              <strong>Сфотографировать страницу</strong>
-              <small>Или выбрать готовое изображение из галереи</small>
+              <strong>{t("photoPage")}</strong>
+              <small>{t("chooseGallery")}</small>
             </label>
           )}
-          {preparingImage && <div className="image-preparing">Подготавливаем изображение…</div>}
+          {preparingImage && <div className="image-preparing">{t("prepareImage")}</div>}
           {preview && !preparingImage && (
             <button className="analyze-main-button" disabled={!imageData || job.active} onClick={() => runAnalysis("image")}>
-              <span>Проанализировать фотографию</span><b>✦</b>
+              <span>{t("analyzePhoto")}</span><b>✦</b>
             </button>
           )}
-          <p className="privacy-note">Фото отправляется в OpenAI для анализа и не сохраняется приложением как файл.</p>
+          <p className="privacy-note">{t("privacyPhoto")}</p>
         </div>
       ) : (
         <div className="glass-card text-analyzer">
-          <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Вставь немецкий текст, письмо, объявление или упражнение…" />
+          <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder={t("pasteGerman")} />
           <div className="analyzer-footer">
-            <span>{text.trim() ? text.trim().split(/\s+/).length : 0} слов</span>
-            <button className="analyze-main-button compact" disabled={!text.trim() || job.active} onClick={() => runAnalysis("text")}>Анализировать <b>✦</b></button>
+            <span>{text.trim() ? text.trim().split(/\s+/).length : 0} {t("words").toLowerCase()}</span>
+            <button className="analyze-main-button compact" disabled={!text.trim() || job.active} onClick={() => runAnalysis("text")}>{t("analyze")} <b>✦</b></button>
           </div>
         </div>
       )}
@@ -280,7 +288,7 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
         <div className="analysis-progress" aria-live="polite">
           <div className="progress-copy"><span>{job.label}</span><b>{job.progress}%</b></div>
           <div className="progress-track"><i style={{ width: `${job.progress}%` }} /></div>
-          <div className="progress-bottom"><small>{job.type === "image" ? "AI одновременно читает изображение и понимает контекст" : "AI разбирает формы слов и устойчивые выражения"}</small><button onClick={cancelAnalysis}>Отменить</button></div>
+          <div className="progress-bottom"><small>{job.label}</small><button onClick={cancelAnalysis}>{t("cancelAnalysis")}</button></div>
         </div>
       )}
 
@@ -291,21 +299,21 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
         <div className="analysis-results">
           {result.provider === "openai" && (
             <div className="ai-analysis-overview">
-              <div><span>AI-АНАЛИЗ · {result.difficulty}</span><h2>{result.titleRu}</h2></div>
+              <div><span>AI-ANALYSE · {result.difficulty}</span><h2>{result.titleRu}</h2></div>
               <p>{result.summaryRu}</p>
               <small>{result.textTypeRu}</small>
             </div>
           )}
 
           <div className="stats-grid four">
-            <StatCard value={result.summary.totalTokens} label="Слов" />
-            <StatCard value={result.summary.knownCount} label="Знакомые" tone="green" />
-            <StatCard value={result.summary.boundaryCount} label="Повторить" tone="yellow" />
-            <StatCard value={result.summary.unknownCount} label="Полезные" tone="red" />
+            <StatCard value={result.summary.totalTokens} label={t("words")} />
+            <StatCard value={result.summary.knownCount} label={t("familiar")} tone="green" />
+            <StatCard value={result.summary.boundaryCount} label={t("review")} tone="yellow" />
+            <StatCard value={result.summary.unknownCount} label={t("useful")} tone="red" />
           </div>
 
           <details className="source-text-card">
-            <summary>Показать текст материала <span>⌄</span></summary>
+            <summary>{t("showSource")} <span>⌄</span></summary>
             <div className="highlighted-text">
               {(result.highlightedTokens || []).map((token, index) => <span className={token.status} key={`${index}-${token.text}`}>{token.text}</span>)}
             </div>
@@ -313,8 +321,8 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
 
           <div className="ai-vocabulary">
             <div className="results-heading">
-              <div><span>ДЛЯ ИЗУЧЕНИЯ</span><h2>Полезная лексика</h2></div>
-              <div className="results-actions"><small>{vocabulary.length} элементов</small><button disabled={addingAll} onClick={addAllVocabulary}>{addingAll ? "Добавляем…" : "Добавить важные"}</button></div>
+              <div><span>{t("forLearning")}</span><h2>{t("usefulVocabulary")}</h2></div>
+              <div className="results-actions"><small>{vocabulary.length} {t("elements")}</small><button disabled={addingAll} onClick={addAllVocabulary}>{addingAll ? t("adding") : t("addImportant")}</button></div>
             </div>
             <div className="vocabulary-grid">
               {vocabulary.slice(0, 30).map((word) => {
@@ -330,9 +338,9 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
                     {word.grammarRu && <p className="vocab-grammar">{word.grammarRu}</p>}
                     {!!word.collocations?.length && <div className="vocab-chips">{word.collocations.slice(0, 3).map((item) => <span key={item.de}>{item.de}</span>)}</div>}
                     {!!word.examples?.length && <blockquote><b>{word.examples[0].de}</b><span>{word.examples[0].ru}</span></blockquote>}
-                    {!!word.antonyms?.length && <div className="vocab-antonyms">Антонимы: {word.antonyms.join(", ")}</div>}
+                    {!!word.antonyms?.length && <div className="vocab-antonyms">{t("antonyms")}: {word.antonyms.join(", ")}</div>}
                     <button disabled={added || addingId === id} onClick={() => addVocabulary(word)}>
-                      {addingId === id ? "Добавляем…" : added ? "✓ В карте" : "Добавить в карту"}
+                      {addingId === id ? t("adding") : added ? t("inMap") : t("addToMap")}
                     </button>
                   </article>
                 );
@@ -342,7 +350,7 @@ export default function AnalyzeTextPanel({ onAddWord, onAddWords }) {
 
           {!!result.usefulPhrases?.length && (
             <div className="useful-phrases-card">
-              <div className="results-heading"><div><span>ИЗ МАТЕРИАЛА</span><h2>Готовые выражения</h2></div></div>
+              <div className="results-heading"><div><span>{t("sourceMaterial")}</span><h2>{t("readyPhrases")}</h2></div></div>
               {result.usefulPhrases.map((phrase) => <article key={phrase.de}><strong>{phrase.de}</strong><span>{phrase.ru}</span><p>{phrase.explanationRu}</p></article>)}
             </div>
           )}

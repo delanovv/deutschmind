@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import KnowledgeLegend from "./KnowledgeLegend.jsx";
+import { useLanguage } from "../i18n.jsx";
 
 const colors = {
   known: "#45dc78",
@@ -257,6 +258,7 @@ export default function KnowledgeGraph({
   onWebChange,
   preview = false,
 }) {
+  const { t } = useLanguage();
   const topics = graph.nodes.filter((node) => node.type === "topic");
   const layout = activeWeb
     ? createFocusedLayout(graph, activeWeb)
@@ -443,7 +445,7 @@ export default function KnowledgeGraph({
             className={!activeWeb ? "active" : ""}
             onClick={() => onWebChange?.("")}
           >
-            Все
+            {t("all")}
           </button>
           {topics.map((topic) => (
             <button
@@ -459,14 +461,14 @@ export default function KnowledgeGraph({
       <div className={`graph-card web-map ${preview ? "graph-preview" : ""}`}>
         {!preview && <KnowledgeLegend />}
         {!preview && (
-          <div className="map-controls" aria-label="Управление картой">
-            <button onClick={() => zoomAt(0.78)} aria-label="Приблизить">
+          <div className="map-controls" aria-label={t("mapTitle")}>
+            <button onClick={() => zoomAt(0.78)} aria-label={t("zoomIn")}>
               +
             </button>
-            <button onClick={() => zoomAt(1.28)} aria-label="Отдалить">
+            <button onClick={() => zoomAt(1.28)} aria-label={t("zoomOut")}>
               −
             </button>
-            <button onClick={resetView} aria-label="Вернуть карту в центр">
+            <button onClick={resetView} aria-label={t("resetMap")}>
               ◎
             </button>
           </div>
@@ -478,7 +480,7 @@ export default function KnowledgeGraph({
             viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}
             preserveAspectRatio="xMidYMid slice"
             role="img"
-            aria-label="Паутины знаний немецкого языка"
+            aria-label={t("graphLabel")}
             onPointerDown={beginPointer}
             onPointerMove={movePointer}
             onPointerUp={endPointer}
@@ -631,7 +633,7 @@ export default function KnowledgeGraph({
         </div>
         {!preview && (
           <div className="mastery-pill">
-            <span>⌁</span> Освоено: <strong>{mastery}%</strong>
+            <span>⌁</span> {t("mastered")}: <strong>{mastery}%</strong>
           </div>
         )}
       </div>

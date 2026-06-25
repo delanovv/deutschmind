@@ -1,7 +1,7 @@
 {
   "name": "DeutschMind",
   "short_name": "DeutschMind",
-  "description": "Персональная карта знаний немецкого языка",
+  "description": "Persönliche Wissenskarte zum Deutschlernen",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#070A12",

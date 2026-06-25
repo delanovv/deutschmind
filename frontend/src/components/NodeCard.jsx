@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const statusNames = { known: "Знаю", boundary: "На границе", unknown: "Новое" };
+import { useLanguage } from "../i18n.jsx";
 
 const normalizeContent = (value) => String(value || "")
   .toLocaleLowerCase("de-DE")
@@ -18,6 +17,8 @@ const isRealUsageExample = (example) => {
 };
 
 export default function NodeCard({ node, graph, onClose, onNavigate, onKnowledgeChange, onEdit, onDelete, saving, branchLoading, branchSuggestion, onRetryBranch }) {
+  const { t } = useLanguage();
+  const statusNames = { known: t("known"), boundary: t("boundary"), unknown: t("unknown") };
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({});
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function NodeCard({ node, graph, onClose, onNavigate, onKnowledge
       {[...new Map(items.map((item) => [item.id, item])).values()].map((item) => (
         <button key={item.id} onClick={() => onNavigate?.(item)}>
           <span>{item.label}</span>
-          {item.topic !== node.topic && <small>другая паутина · {item.topic}</small>}
+          {item.topic !== node.topic && <small>{t("anotherWeb")} · {item.topic}</small>}
           <b>→</b>
         </button>
       ))}
@@ -65,7 +66,7 @@ export default function NodeCard({ node, graph, onClose, onNavigate, onKnowledge
           <input value={draft.label} onChange={(event) => setDraft({ ...draft, label: event.target.value })} />
           <input value={draft.translationRu} onChange={(event) => setDraft({ ...draft, translationRu: event.target.value })} />
           <textarea value={draft.explanationRu} onChange={(event) => setDraft({ ...draft, explanationRu: event.target.value })} />
-          <div><select value={draft.cefr} onChange={(event) => setDraft({ ...draft, cefr: event.target.value })}><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select><button>Сохранить</button><button type="button" onClick={() => setEditing(false)}>Отмена</button></div>
+          <div><select value={draft.cefr} onChange={(event) => setDraft({ ...draft, cefr: event.target.value })}><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select><button>{t("save")}</button><button type="button" onClick={() => setEditing(false)}>{t("cancel")}</button></div>
         </form> : <>
           <h2>{node.label}</h2>
           <p className="translation">{node.translationRu}</p>
@@ -74,14 +75,14 @@ export default function NodeCard({ node, graph, onClose, onNavigate, onKnowledge
           {node.cefr && node.type !== "topic" && <span>{node.cefr}</span>}<span>{node.type}</span><span>{node.topic}</span>
           {node.plural && <span>Plural: {node.plural}</span>}
         </div>
-        <div className="score-row"><span>Уверенность</span><strong>{node.knowledgeScore}%</strong></div>
+        <div className="score-row"><span>{t("confidence")}</span><strong>{node.knowledgeScore}%</strong></div>
         <div className="score-bar"><i style={{ width: `${node.knowledgeScore}%` }} /></div>
         <p className="explanation">{node.explanationRu}</p>
         {(branchLoading || branchSuggestion) && <div className={`ai-branch-card ${branchLoading ? "loading" : ""}`}>
-          <small>AI-ПРОДОЛЖЕНИЕ ПАУТИНЫ</small>
+          <small>{t("aiContinuation")}</small>
           {branchLoading && <>
             <div className="branch-loader"><i /><i /><i /></div>
-            <p>Ищу новое близкое слово, которого ещё нет в твоей карте…</p>
+            <p>{t("searchingWord")}</p>
           </>}
           {!branchLoading && branchSuggestion?.node && (
             <button onClick={() => onNavigate?.(branchSuggestion.node)}>
@@ -94,35 +95,35 @@ export default function NodeCard({ node, graph, onClose, onNavigate, onKnowledge
           )}
           {!branchLoading && branchSuggestion?.pending && <>
             <div className="branch-loader"><i /><i /><i /></div>
-            <p>{branchSuggestion.reasonRu || "AI расширяет паутину в фоне. Новые узлы появятся после завершения задачи."}</p>
+            <p>{branchSuggestion.reasonRu || t("aiExpanding")}</p>
           </>}
           {!branchLoading && branchSuggestion?.completed && (
-            <p>{branchSuggestion.reasonRu || "Ветка расширена."}</p>
+            <p>{branchSuggestion.reasonRu || t("branchExpanded")}</p>
           )}
           {!branchLoading && branchSuggestion?.error && <>
             <p>{branchSuggestion.error}</p>
-            <button className="branch-retry" onClick={onRetryBranch}>Попробовать ещё раз</button>
+            <button className="branch-retry" onClick={onRetryBranch}>{t("retryAgain")}</button>
           </>}
         </div>}
-        {!!verbs.length && <div className="detail-block"><small>ТИПИЧНЫЕ ГЛАГОЛЫ</small>{relationButtons(verbs)}</div>}
-        {!!opposites.length && <div className="detail-block"><small>АНТОНИМЫ</small>{relationButtons(opposites)}</div>}
-        {!!connected.length && <div className="detail-block"><small>ПЕРЕЙТИ К ПОХОЖИМ</small>{relationButtons(connected)}</div>}
+        {!!verbs.length && <div className="detail-block"><small>{t("typicalVerbs")}</small>{relationButtons(verbs)}</div>}
+        {!!opposites.length && <div className="detail-block"><small>{t("antonyms").toUpperCase()}</small>{relationButtons(opposites)}</div>}
+        {!!connected.length && <div className="detail-block"><small>{t("related")}</small>{relationButtons(connected)}</div>}
         {!!node.collocations?.length && (
-          <div className="detail-block"><small>СЛОВОСОЧЕТАНИЯ</small>
+          <div className="detail-block"><small>{t("collocations")}</small>
             {node.collocations.map((item) => <p className="example-line" key={item.de}><b>{item.de}</b><span>{item.ru}</span></p>)}
           </div>
         )}
         {!!visibleExamples.length && (
-          <div className="detail-block"><small>ПРИМЕР</small>
+          <div className="detail-block"><small>{t("example")}</small>
             {visibleExamples.map((item) => <p className="example-line" key={item.de}><b>{item.de}</b><span>{item.ru}</span></p>)}
           </div>
         )}
         <div className="knowledge-actions">
-          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "known" })}>Знаю</button>
-          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "boundary" })}>Частично</button>
-          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "unknown" })}>Не знаю</button>
+          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "known" })}>{t("known")}</button>
+          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "boundary" })}>{t("partial")}</button>
+          <button disabled={saving} onClick={() => onKnowledgeChange(node.id, { status: "unknown" })}>{t("legendUnknown")}</button>
         </div>
-        {node.userAdded && <div className="personal-word-actions"><button onClick={() => setEditing(true)}>Редактировать</button><button onClick={() => onDelete?.(node.id)}>Удалить</button></div>}
+        {node.userAdded && <div className="personal-word-actions"><button onClick={() => setEditing(true)}>{t("edit")}</button><button onClick={() => onDelete?.(node.id)}>{t("delete")}</button></div>}
       </aside>
     </div>
   );

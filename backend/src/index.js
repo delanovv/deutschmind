@@ -20,6 +20,7 @@ import graphRoutesV2 from "./modules/graph/graphRoutesV2.js";
 import knowledgeRoutesV2 from "./modules/knowledge/knowledgeRoutesV2.js";
 import materialRoutesV2 from "./modules/materials/materialRoutesV2.js";
 import { apiLimiter } from "./middleware/security.js";
+import { localeMiddleware } from "./middleware/locale.js";
 import { checkDatabase, databaseEnabled } from "./db/pool.js";
 
 const app = express();
@@ -37,6 +38,7 @@ app.use(cors({
   credentials: false
 }));
 app.use(express.json({ limit: "12mb" }));
+app.use(localeMiddleware);
 app.use("/api", apiLimiter);
 
 app.get("/api/health", async (req, res) => {

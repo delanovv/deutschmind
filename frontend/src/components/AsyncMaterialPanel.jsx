@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { getJobV2, getMaterialV2, submitTextV2, uploadImageV2 } from "../api.js";
+import { useLanguage } from "../i18n.jsx";
 
 export default function AsyncMaterialPanel() {
+  const { t } = useLanguage();
   const [mode, setMode] = useState("image");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -50,10 +52,10 @@ export default function AsyncMaterialPanel() {
   const progress = job?.status === "completed" ? 100 : job?.status === "active" ? 62 : job?.status === "failed" ? 100 : job ? 18 : 0;
   return (
     <section className="screen-section analyze-screen">
-      <div className="plain-page-header"><span>ФОНОВЫЙ AI-АНАЛИЗ</span><h1>Импорт</h1><p>Можно уйти с экрана: анализ выполняется в очереди, а результат хранится в твоём аккаунте.</p></div>
+      <div className="plain-page-header"><span>{t("importEyebrow")}</span><h1>{t("importTitle")}</h1><p>{t("importIntro")}</p></div>
       <div className="import-mode-tabs">
-        <button className={mode === "image" ? "active" : ""} onClick={() => setMode("image")}>Фото</button>
-        <button className={mode === "text" ? "active" : ""} onClick={() => setMode("text")}>Текст</button>
+        <button className={mode === "image" ? "active" : ""} onClick={() => setMode("image")}>{t("photo")}</button>
+        <button className={mode === "text" ? "active" : ""} onClick={() => setMode("text")}>{t("text")}</button>
       </div>
       {mode === "image" ? (
         <label className="camera-picker">
@@ -64,17 +66,17 @@ export default function AsyncMaterialPanel() {
             setFile(next);
             setPreview(URL.createObjectURL(next));
           }} />
-          {preview ? <img src={preview} alt="" /> : <><span className="camera-icon">▧</span><strong>Сфотографировать материал</strong><small>Файл удалится из хранилища после анализа</small></>}
+          {preview ? <img src={preview} alt="" /> : <><span className="camera-icon">▧</span><strong>{t("takePhoto")}</strong><small>{t("fileDeleted")}</small></>}
         </label>
       ) : (
-        <div className="glass-card text-analyzer"><textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Вставь немецкий текст…" /></div>
+        <div className="glass-card text-analyzer"><textarea value={text} onChange={(event) => setText(event.target.value)} placeholder={t("pasteGerman")} /></div>
       )}
       <button className="analyze-main-button" disabled={Boolean(job && !["completed", "failed"].includes(job.status)) || (mode === "image" ? !file : !text.trim())} onClick={submit}>
-        Отправить на анализ <b>✦</b>
+        {t("sendAnalysis")} <b>✦</b>
       </button>
       {job && (
         <div className="analysis-progress">
-          <div className="progress-copy"><span>{job.status === "queued" ? "В очереди" : job.status === "active" ? "AI анализирует материал" : job.status === "completed" ? "Готово" : "Ошибка"}</span><b>{progress}%</b></div>
+          <div className="progress-copy"><span>{job.status === "queued" ? t("queued") : job.status === "active" ? t("analyzing") : job.status === "completed" ? t("done") : t("error")}</span><b>{progress}%</b></div>
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
       )}

@@ -42,6 +42,7 @@ import MemoryPanel from "./components/MemoryPanel.jsx";
 import WordLibrary from "./components/WordLibrary.jsx";
 import AuthScreen from "./components/AuthScreen.jsx";
 import AsyncMaterialPanel from "./components/AsyncMaterialPanel.jsx";
+import { LanguageSwitch, useLanguage } from "./i18n.jsx";
 
 const BRANCH_POLL_INTERVAL_MS = 1_500;
 const BRANCH_POLL_TIMEOUT_MS = 3 * 60 * 1_000;
@@ -67,6 +68,7 @@ async function waitForBranchJob(jobId) {
 }
 
 export default function App() {
+  const { language, t } = useLanguage();
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [boundary, setBoundary] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
@@ -178,7 +180,9 @@ export default function App() {
         const recommendationData = due.slice(0, 6).map((node) => ({
           node,
           proximityScore: Math.round(100 - node.knowledgeScore),
-          reasonRu: "Слово находится в твоей личной очереди повторений.",
+          reasonRu: language === "de"
+            ? "Dieses Wort befindet sich in deiner persönlichen Wiederholungsliste."
+            : "Слово находится в твоей личной очереди повторений.",
           relatedKnownWords: [],
           suggestedCollocations: node.collocations || [],
         }));
@@ -192,8 +196,12 @@ export default function App() {
             mode: ["recognition", "recall", "context", "production"][index % 4],
             prompt:
               index % 2
-                ? `Составь короткое предложение с «${node.label}».`
-                : `Как по-немецки: «${node.translationRu}»?`,
+                ? language === "de"
+                  ? `Bilde einen kurzen Satz mit „${node.label}“.`
+                  : `Составь короткое предложение с «${node.label}».`
+                : language === "de"
+                  ? `Wie heißt auf Deutsch: „${node.translationRu}“?`
+                  : `Как по-немецки: «${node.translationRu}»?`,
           })),
         });
         setMemory({
@@ -219,7 +227,7 @@ export default function App() {
         if (!silent) setLoading(false);
       }
     },
-    [],
+    [language],
   );
 
   useEffect(() => {
@@ -599,12 +607,15 @@ export default function App() {
           <div className="brand-mark">D</div>
           <div>
             <strong>DeutschMind</strong>
-            <span>Карта твоего немецкого мозга</span>
+            <span>{t("tagline")}</span>
           </div>
         </div>
-        <button className="avatar" onClick={() => setActiveTab("memory")}>
-          DM
-        </button>
+        <div className="header-actions">
+          <LanguageSwitch />
+          <button className="avatar" onClick={() => setActiveTab("memory")}>
+            DM
+          </button>
+        </div>
       </header>
       <main className="app-content">
         {error && (
@@ -630,12 +641,9 @@ export default function App() {
         {activeTab === "map" && (
           <section className="screen-section map-screen">
             <div className="plain-page-header">
-              <span>ТВОЙ СЛОВАРЬ</span>
-              <h1>Карта</h1>
-              <p>
-                Ищи, добавляй и уточняй слова. Граф показывает связи, список
-                помогает быстро работать.
-              </p>
+              <span>{t("mapEyebrow")}</span>
+              <h1>{t("mapTitle")}</h1>
+              <p>{t("mapIntro")}</p>
             </div>
             <KnowledgeGraph
               graph={graph}
