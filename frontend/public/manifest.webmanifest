@@ -1,0 +1,17 @@
+{
+  "name": "DeutschMind",
+  "short_name": "DeutschMind",
+  "description": "Персональная карта знаний немецкого языка",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070A12",
+  "theme_color": "#070A12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: deutschmind
+      POSTGRES_USER: deutschmind
+      POSTGRES_PASSWORD: deutschmind
+    ports:
+      - "5433:5432"
+    volumes:
+      - deutschmind_postgres:/var/lib/postgresql/data
+      - ./backend/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deutschmind -d deutschmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - deutschmind_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: deutschmind
+      MINIO_ROOT_PASSWORD: deutschmind-local-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - deutschmind_objects:/data
+
+volumes:
+  deutschmind_postgres:
+  deutschmind_redis:
+  deutschmind_objects:
