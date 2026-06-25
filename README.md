@@ -140,14 +140,6 @@ npm run preview
 
 The core application and production architecture are implemented. The next planned improvements are automated tests, continuous integration, deployment, and a public demo.
 
-## Author
-
-Created by **Vladislav** as a portfolio project.
-
-- GitHub: [@delanovv](https://github.com/delanovv)
-- LinkedIn / Xing: **ADD YOUR PROFILE OR REMOVE THIS LINE**
-- Location: Germany
-
 ## License
 
 This project is currently provided as a portfolio and demonstration project. Add a license before allowing reuse by third parties.
